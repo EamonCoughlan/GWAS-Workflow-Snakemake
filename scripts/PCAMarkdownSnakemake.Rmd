@@ -1,0 +1,128 @@
+---
+title: "Snakemake PCA Markdown"
+output: html_document
+date: "`r Sys.Date()`"
+params:
+   rmd: "PCAMarkdownSnakemake.Rmd"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**SNPs removed from high LD regions**
+```{r, echo=FALSE, message=FALSE}
+require(knitr)
+#count length of bim before and after.
+#might need to separate it from the maf/geno if those stats need to be observed separately
+beforecount <- length(readLines(snakemake@input[[1]]))
+aftercount <- length(readLines(snakemake@input[[2]]))
+difference <- beforecount - aftercount
+columns <- c('Starting', 'Removed', 'Remaining')
+df <- data.frame(beforecount, difference, aftercount)
+knitr::kable(df, col.names = columns)
+```
+
+**SNPs Removed Due to Strand Ambiguity**
+```{r, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+ambSNPs <- length(readLines(snakemake@input[[3]]))
+knitr::kable(ambSNPs, col.names = c('#SNPs'))
+```
+
+**SNPs Removed Due to High (>`r snakemake@params[['geno2value']]`) Rate of Missingness Across Samples**
+```{r, echo=FALSE}
+lmiss <- read.table(snakemake@input[[4]], header = TRUE, stringsAsFactors = FALSE)
+Total <- nrow(lmiss)
+Removed <- nrow(lmiss[lmiss$F_MISS>snakemake@params[['geno2value']],])
+df <- data.frame(Total, Removed, row.names = '#SNPs')
+knitr::kable(df)
+```
+
+**Histogram of Minor Allele Frequency following filtering (MAF >`r snakemake@params[['maf2value']]`)**
+```{r, echo=FALSE}
+newmaf <- read.table(snakemake@input[[5]], header = TRUE, stringsAsFactors=FALSE)
+hist(newmaf$MAF,
+     main = paste('Histogram of Minor Allele Frequency'),
+     xlab = 'Minor Allele Frequency',
+     col = 'forestgreen')
+```
+
+**Number of individuals in related group (first kinship analysis)**
+```{r, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+relatedcount <- length(readLines(snakemake@input[[6]]))
+unrelatedcount <- length(readLines(snakemake@input[[7]]))
+total <- relatedcount + unrelatedcount
+columns <- c('Related', 'Unrelated', 'Total')
+df <- data.frame(relatedcount, unrelatedcount, total)
+knitr::kable(df, col.names = columns)
+```
+
+**Number of SNPs removed by LD pruning (`r snakemake@params[['ipvalue']]`)**
+```{r, echo=FALSE}
+remaining <- length(readLines(snakemake@input[[8]]))
+pruned <- length(readLines(snakemake@input[[9]]))
+total <- remaining + pruned
+columns <- c('Total', 'Pruned', 'Remaining')
+df <- data.frame(total, pruned, remaining)
+knitr::kable(df, col.names = columns)
+```
+
+**Number of SNPS removed due to high PC-loading (Threshold > `r snakemake@params[['PCLthreshold']]`th Proportion)**
+```{r, echo=FALSE}
+total <- length(readLines(snakemake@input[[8]]))
+remaining <- length(readLines(snakemake@input[[10]]))
+removed <- total - remaining
+columns <- c('Total', 'Removed', 'Remaining')
+df <- data.frame(total, removed, remaining)
+knitr::kable(df, col.names = columns)
+```
+
+**Number of individuals in related group (Second/Final analysis)**
+```{r, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+relatedcount <- length(readLines(snakemake@input[[11]]))
+total <- length(readLines(snakemake@input[[12]]))
+unrelatedcount <- total - relatedcount
+columns <- c('Related', 'Unrelated', 'Total')
+df <- data.frame(relatedcount, unrelatedcount, total)
+knitr::kable(df, col.names = columns)
+```
+
+**SNPs strand-flipped to match 1000GP Data**
+```{r, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+flippedSNPs <- length(readLines(snakemake@input[[13]]))
+knitr::kable(flippedSNPs, col.names = c('#SNPs'))
+```
+
+**SNPs merging with 1000 Genomes Data**
+```{r, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+CommonSNPs <- length(readLines(snakemake@input[[14]]))
+DuplicateSNPs <- length(readLines(snakemake@input[[15]]))
+total <- CommonSNPs - DuplicateSNPs
+columns <- c('SNPs in Common', 'SNPs duplicated', 'Total SNPs after merge')
+df <- data.frame(CommonSNPs, DuplicateSNPs, total)
+knitr::kable(df, col.names = columns)
+```
+
+**Number of SNPs removed by LD pruning (`r snakemake@params[['ipvalue2']]`)**
+```{r, echo=FALSE}
+remaining <- length(readLines(snakemake@input[[16]]))
+pruned <- length(readLines(snakemake@input[[17]]))
+total <- remaining + pruned
+columns <- c('Total', 'Pruned', 'Remaining')
+df <- data.frame(total, pruned, remaining)
+knitr::kable(df, col.names = columns)
+```
+
+**Plots of PCs 1-`r snakemake@params[['PCnumber']]`**
+
+```{r, echo=FALSE, message=FALSE}
+pca <- read.table(snakemake@input[[18]], header = FALSE, sep = '')
+ancestry <- read.table(snakemake@input[[19]], header = FALSE)
+ancestry[ancestry == "-"] <- "-sample"
+for (i in 3:(as.numeric(snakemake@params[['PCnumber']])+1)) {
+  values <- data.frame(pca[c(i)], pca[c(i+1)], ancestry[c(1:nrow(pca)),])
+  colnames(values)<-c('V1','V2','V3')
+  plot(values[1:2], xlab = i-2, ylab= i-1, col = as.factor(values$V3))
+  legend('topleft', legend = unique(values$V3), fill = as.factor(unique(values$V3)))
+}
+```

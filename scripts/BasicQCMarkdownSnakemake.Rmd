@@ -1,0 +1,80 @@
+---
+title: "GWAS BASIC QC"
+output: html_document
+date: "`r Sys.Date()`"
+params:
+   rmd: "BASICQCMarkdownSnakemake.Rmd"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Starting (Pre-QC) Minor Allele Frequency:
+
+```{r, echo=FALSE}
+startingmaf <- read.table(snakemake@input[[1]], header = TRUE, stringsAsFactors=FALSE)
+hist(startingmaf$MAF,
+     main = paste('Histogram of Minor Allele Frequency'),
+     xlab = 'Minor Allele Frequency',
+     col = 'forestgreen')
+```
+
+**Individuals Removed Due to High (>`r snakemake@params[['mind1value']]`) Rate of SNP Missingness**
+```{r, echo=FALSE}
+#make table of number of sample individuals removed due to high SNP missingness
+imiss <- read.table(snakemake@input[[2]], header = TRUE, stringsAsFactors =FALSE)
+Total <- nrow(imiss)
+mind1value <- snakemake@params[['mind1value']]
+Removed <- nrow(imiss[imiss$F_MISS>mind1value,])
+df <- data.frame(Total, Removed, row.names = '#Samples')
+knitr::kable(df)
+```
+
+**SNPs Removed Due to High (>`r snakemake@params[['genovalue']]`) Rate of Missingness Across Samples**
+```{r, echo=FALSE}
+lmiss <- read.table(snakemake@input[[3]], header = TRUE, stringsAsFactors =FALSE)
+Total <- nrow(lmiss)
+genovalue <- snakemake@params[['genovalue']]
+Removed <- nrow(lmiss[lmiss$F_MISS>genovalue,])
+df <- data.frame(Total, Removed, row.names = '#SNPs')
+knitr::kable(df)
+```
+
+## Post-Filter (`r snakemake@params[['mafvalue']]`) Minor Allele Frequency:
+
+```{r, echo=FALSE}
+PostQCmaf <- read.table(snakemake@input[[4]], header = TRUE, stringsAsFactors=FALSE)
+hist(PostQCmaf$MAF,
+     main = paste('Histogram of Minor Allele Frequency'),
+     xlab = 'Minor Allele Frequency',
+     col = 'forestgreen')
+```
+
+**Individuals Removed Due to High (>`r snakemake@params[['mind2value']]`) Rate of SNP Missingness; 2nd round**
+```{r, echo=FALSE}
+#make table of number of sample individuals removed due to high SNP missingness
+imiss2 <- read.table(snakemake@input[[5]], header = TRUE, stringsAsFactors =FALSE)
+Total <- nrow(imiss2)
+mind2value <- snakemake@params[['mind2value']]
+Removed <- nrow(imiss2[imiss2$F_MISS>mind2value,])
+df <- data.frame(Total, Removed, row.names = '#Samples')
+knitr::kable(df)
+```
+
+**SNPs removed for being outside HWE thresholds (p < `r snakemake@params[['hwevalue']]`)**
+```{r, echo=FALSE}
+#make table of HWE p-values
+hwetable <- read.table(snakemake@input[[6]], header = TRUE, stringsAsFactors =FALSE)
+pvalue <- snakemake@params[['hwevalue']]
+Total <- nrow(hwetable)
+Removed <- nrow(hwetable[hwetable$P<=pvalue,])
+df <- data.frame(Total, Removed, row.names = '#SNPs')
+knitr::kable(df)
+```
+
+**Number of Duplicate Samples Removed**
+```{r, echo=FALSE}
+duplicates <- length(readLines(snakemake@input[[7]]))
+knitr::kable(duplicates, col.names = c('#Samples'))
+```

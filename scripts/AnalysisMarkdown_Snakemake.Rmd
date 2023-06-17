@@ -1,0 +1,36 @@
+---
+title: "AnalysisQC_Markdown"
+output: html_document
+date: "`r Sys.Date()`"
+params:
+   rmd: "AnalysisMarkdown_Snakemake.Rmd"
+---
+
+**#Samples with missing values mean-imputed**
+```{r, echo=FALSE, message=FALSE}
+require(knitr)
+statsfiles <- readLines(snakemake@input[[1]])
+statfile <- statsfiles[1] #the files are duplicates; uses only 1st
+data <- read.csv(statfile, header= TRUE, fill= TRUE)
+meanimputed <- data[1]
+knitr::kable(meanimputed)
+```
+
+**#Samples removed due to missing values**
+```{r, echo=FALSE, message=FALSE}
+removed <- data[2]
+knitr::kable(removed)
+```
+
+**#Samples in each group (assigned in config)**
+```{r, echo=FALSE, message=FALSE}
+groups <- data[3:length(data)]
+knitr::kable(groups)
+```
+
+**Manhattans**
+
+```{r, echo=FALSE, message=FALSE}
+files <- readLines(snakemake@input[[2]])
+knitr::include_graphics(normalizePath(files), error=FALSE)
+```

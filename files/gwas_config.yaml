@@ -1,0 +1,22 @@
+mind1: '0.05' #Threshold for SNP missingness in samples - basic QC
+geno1: '0.01' #Threshold for rate of missingness of specific SNPs - basic QC
+maf1: '0.01' #Threshold for minor allele frequency - basic QC
+mind2: '0.03' #As above (mind1) - second round for basic QC
+hwe: '0.000001' #Threshold for Hardy Weinberg Equilibrium p-value (was arbitrarily 0.000001)
+maf2: '0.01' #As above (maf1) - pre-PCA QC
+geno2: '0.05' #As above (geno1) - pre-PCA QC
+indep_pairwise: '1000kb 80 0.1' #LD pairwise pruning window size/shift/threshold, see plink documentation for details
+pcl_threshold: '0.67' #threshold percentile for PC loading (loadings values above this are marked for SNP-removal)
+indep_pairwise2: '1000kb 50 0.05' #LD pairwise pruning window size/shift/threshold, see plink documentation for details
+pcl_threshold2: '0.67' #threshold percentile for PC loading (loadings values above this are marked for SNP-removal)
+pc_number: '20' #how many PCs to graph / analyse following kinship analysis
+imputation_password: 'AlphaNumericPassword160623' #password for imputation server - it can be anything that doesn't break shell command (eg. no $), change it here in config file to secure your data
+API: 'YourAPIkey_here' #API key for TopMed imputation. Generate your own on TopMed profile.
+iid_column: 'IID' #the name of the column containing individual IDs
+case_control: 'Covid19Status' #name of column containing your phenotype / case/control info
+pheno_code: '0 1' #how your phenotype is represented in above column (eg. 0 1, 1 2, y n, control case). ORDER AS DESCRIBED! Separate by space.
+grouping_column: 'POP' #column to subset your analysis by (eg. ancestry, sex)
+grouping_values: "['EUR']" #possible values in the grouping column (eg. M/F)
+covar_columns: "['IID','Covid19Status','age', 'sex.reported']" #columns to use as covariates; include ID and phenotype columns from above
+mi_columns: "['age']" #columns from above where missing values can be filled by mean imputation. If no columns, set as 'NULL'
+cat_columns: "['sex.reported']" #columns (from above) where the covariate is categorical, to pass to regenie. If no columns, set as 'NULL'

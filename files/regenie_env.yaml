@@ -1,0 +1,30 @@
+name: regenie_env
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - _libgcc_mutex=0.1=conda_forge
+  - _openmp_mutex=4.5=2_kmp_llvm
+  - boost-cpp=1.74.0=h75c5d50_8
+  - bzip2=1.0.8=h7f98852_4
+  - icu=70.1=h27087fc_0
+  - libblas=3.9.0=16_linux64_openblas
+  - libgcc-ng=12.2.0=h65d4601_19
+  - libgfortran-ng=12.2.0=h69a702a_19
+  - libgfortran5=12.2.0=h337968e_19
+  - libhwloc=2.8.0=h32351e8_1
+  - libiconv=1.17=h166bdaf_0
+  - liblapack=3.9.0=16_linux64_openblas
+  - libopenblas=0.3.21=pthreads_h78a6416_3
+  - libsqlite=3.40.0=h753d276_0
+  - libstdcxx-ng=12.2.0=h46fd767_19
+  - libxml2=2.10.3=h7463322_0
+  - libzlib=1.2.13=h166bdaf_4
+  - ncurses=6.3=h27087fc_1
+  - readline=8.1.2=h0f457ee_0
+  - regenie=3.2.4=h2b233e7_0
+  - sqlite=3.40.0=h4ff8645_0
+  - xz=5.2.6=h166bdaf_0
+  - zlib=1.2.13=h166bdaf_4
+  - zstd=1.5.2=h6239696_4
+prefix: /home/eamon/mambaforge/envs/regenie_env
