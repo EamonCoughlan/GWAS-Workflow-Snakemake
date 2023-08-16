@@ -1,13 +1,17 @@
 ---
 title: "GWAS BASIC QC"
-output: html_document
-date: "`r Sys.Date()`"
+output:
+  html_document: default
+  html_notebook: default
+date: "`r Sys.time()`"
 params:
    rmd: "BASICQCMarkdownSnakemake.Rmd"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(stringr)
 ```
 
 ## Starting (Pre-QC) Minor Allele Frequency:
@@ -23,24 +27,34 @@ hist(startingmaf$MAF,
 **Individuals Removed Due to High (>`r snakemake@params[['mind1value']]`) Rate of SNP Missingness**
 ```{r, echo=FALSE}
 #make table of number of sample individuals removed due to high SNP missingness
-imiss <- read.table(snakemake@input[[2]], header = TRUE, stringsAsFactors =FALSE)
-Total <- nrow(imiss)
-mind1value <- snakemake@params[['mind1value']]
-Removed <- nrow(imiss[imiss$F_MISS>mind1value,])
-df <- data.frame(Total, Removed, row.names = '#Samples')
-knitr::kable(df)
+log_file <- readLines(snakemake@input[[2]]) 
+ # Find the line that contains the variable 
+Removed_index <- grep("removed due to missing genotype data", log_file) 
+ # Extract the variable from the line in the log file 
+Removed_split <- strsplit(log_file[Removed_index], " ")[[1]]
+Removed <- Removed_split[1]
+Total_index <- grep("loaded from .fam.", log_file) 
+Total_split <- strsplit(log_file[Total_index], " ")[[1]]
+Total <- Total_split[1]
+df3 <- data.frame(Total, Removed, row.names = '#Samples')
+knitr::kable(df3)
 ```
 
 **SNPs Removed Due to High (>`r snakemake@params[['genovalue']]`) Rate of Missingness Across Samples**
 ```{r, echo=FALSE}
-lmiss <- read.table(snakemake@input[[3]], header = TRUE, stringsAsFactors =FALSE)
-Total <- nrow(lmiss)
-genovalue <- snakemake@params[['genovalue']]
-Removed <- nrow(lmiss[lmiss$F_MISS>genovalue,])
-df <- data.frame(Total, Removed, row.names = '#SNPs')
-knitr::kable(df)
+#make table of number of SNPs removed due to high missingness across samples
+log_file <- readLines(snakemake@input[[3]]) 
+ # Find the line that contains the variable 
+Removed_index <- grep("variants removed due to missing genotype data", log_file) 
+ # Extract the variable from the line in the log file 
+Removed_split <- strsplit(log_file[Removed_index], " ")[[1]]
+Removed <- Removed_split[1]
+Total_index <- grep("loaded from .bim file.", log_file) 
+Total_split <- strsplit(log_file[Total_index], " ")[[1]]
+Total <- Total_split[1]
+df3 <- data.frame(Total, Removed, row.names = '#SNPs')
+knitr::kable(df3)
 ```
-
 ## Post-Filter (`r snakemake@params[['mafvalue']]`) Minor Allele Frequency:
 
 ```{r, echo=FALSE}
@@ -54,23 +68,33 @@ hist(PostQCmaf$MAF,
 **Individuals Removed Due to High (>`r snakemake@params[['mind2value']]`) Rate of SNP Missingness; 2nd round**
 ```{r, echo=FALSE}
 #make table of number of sample individuals removed due to high SNP missingness
-imiss2 <- read.table(snakemake@input[[5]], header = TRUE, stringsAsFactors =FALSE)
-Total <- nrow(imiss2)
-mind2value <- snakemake@params[['mind2value']]
-Removed <- nrow(imiss2[imiss2$F_MISS>mind2value,])
-df <- data.frame(Total, Removed, row.names = '#Samples')
-knitr::kable(df)
+log_file <- readLines(snakemake@input[[5]]) 
+ # Find the line that contains the variable 
+Removed_index <- grep("removed due to missing genotype data", log_file) 
+ # Extract the variable from the line in the log file 
+Removed_split <- strsplit(log_file[Removed_index], " ")[[1]]
+Removed <- Removed_split[1]
+Total_index <- grep("loaded from .fam.", log_file) 
+Total_split <- strsplit(log_file[Total_index], " ")[[1]]
+Total <- Total_split[1]
+df3 <- data.frame(Total, Removed, row.names = '#Samples')
+knitr::kable(df3)
 ```
 
 **SNPs removed for being outside HWE thresholds (p < `r snakemake@params[['hwevalue']]`)**
 ```{r, echo=FALSE}
-#make table of HWE p-values
-hwetable <- read.table(snakemake@input[[6]], header = TRUE, stringsAsFactors =FALSE)
-pvalue <- snakemake@params[['hwevalue']]
-Total <- nrow(hwetable)
-Removed <- nrow(hwetable[hwetable$P<=pvalue,])
-df <- data.frame(Total, Removed, row.names = '#SNPs')
-knitr::kable(df)
+#make table of number of SNPs removed due to HWE threshold
+log_file <- readLines(snakemake@input[[6]]) 
+ # Find the line that contains the variable 
+Removed_index <- grep("variants removed due to Hardy-Weinberg exact test.", log_file) 
+ # Extract the variable from the line in the log file 
+Removed_split <- strsplit(log_file[Removed_index], " ")[[1]]
+Removed <- Removed_split[2] #number is second string in this line
+Total_index <- grep("loaded from .bim file.", log_file) 
+Total_split <- strsplit(log_file[Total_index], " ")[[1]]
+Total <- Total_split[1]
+df3 <- data.frame(Total, Removed, row.names = '#SNPs')
+knitr::kable(df3)
 ```
 
 **Number of Duplicate Samples Removed**
