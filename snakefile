@@ -58,8 +58,8 @@ rule RMarkdown_PCA:
         'data/{sample}.PostBasicQC.bim',
         'data/{sample}.highLDexcluded.bim',
         'data/{sample}.ambiguousSNPs.txt',
-        'data/{sample}.prekinship.lmiss',
-        'data/{sample}.prekinship.frq',
+        'data/{sample}.prekinship.log',
+        'data/{sample}.prekinshipmaf.frq',
         'data/{sample}.related_d3.txt',
         'data/{sample}.unrelated.fam',
         'data/{sample}.prune.in',
@@ -291,13 +291,12 @@ rule pre_kinship_filters:
         temp('data/{sample}.prekinship.bed'),
         temp('data/{sample}.prekinship.bim'),
         temp('data/{sample}.prekinship.fam'),
-        temp('data/{sample}.prekinship.imiss'),
-        temp('data/{sample}.prekinship.lmiss')
+        temp('data/{sample}.prekinship.log'),
     params:
         mafvalue = config['maf2'],
         genovalue = config['geno2']
     shell:
-        'plink --bfile data/{wildcards.sample}.ambSNPsremoved --missing --maf {params.mafvalue} --geno {params.genovalue} --make-bed --out data/{wildcards.sample}.prekinship'
+        'plink --bfile data/{wildcards.sample}.ambSNPsremoved --maf {params.mafvalue} --geno {params.genovalue} --make-bed --out data/{wildcards.sample}.prekinship'
 
 #Generate MAF stats for Markdown
 rule maf_graph_prekinship:
@@ -306,9 +305,9 @@ rule maf_graph_prekinship:
         'data/{sample}.prekinship.bim',
         'data/{sample}.prekinship.fam'
     output:
-        temp('data/{sample}.prekinship.frq')
+        temp('data/{sample}.prekinshipmaf.frq')
     shell:
-        'plink --bfile data/{wildcards.sample}.prekinship --freq --out data/{wildcards.sample}.prekinship'
+        'plink --bfile data/{wildcards.sample}.prekinship --freq --out data/{wildcards.sample}.prekinshipmaf'
 
 #Kinship testing (King)
 rule kinship_testing:

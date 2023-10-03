@@ -1,7 +1,7 @@
 ---
 title: "Snakemake PCA Markdown"
 output: html_document
-date: "`r Sys.Date()`"
+date: "`r Sys.time()`"
 params:
    rmd: "PCAMarkdownSnakemake.Rmd"
 ---
@@ -31,11 +31,18 @@ knitr::kable(ambSNPs, col.names = c('#SNPs'))
 
 **SNPs Removed Due to High (>`r snakemake@params[['geno2value']]`) Rate of Missingness Across Samples**
 ```{r, echo=FALSE}
-lmiss <- read.table(snakemake@input[[4]], header = TRUE, stringsAsFactors = FALSE)
-Total <- nrow(lmiss)
-Removed <- nrow(lmiss[lmiss$F_MISS>snakemake@params[['geno2value']],])
-df <- data.frame(Total, Removed, row.names = '#SNPs')
-knitr::kable(df)
+#make table of number of SNPs removed due to high missingness across samples
+log_file <- readLines(snakemake@input[[4]]) 
+ # Find the line that contains the variable 
+Removed_index <- grep("variants removed due to missing genotype data", log_file) 
+ # Extract the variable from the line in the log file 
+Removed_split <- strsplit(log_file[Removed_index], " ")[[1]]
+Removed <- Removed_split[1]
+Total_index <- grep("loaded from .bim file.", log_file) 
+Total_split <- strsplit(log_file[Total_index], " ")[[1]]
+Total <- Total_split[1]
+df2 <- data.frame(Total, Removed, row.names = '#SNPs')
+knitr::kable(df2)
 ```
 
 **Histogram of Minor Allele Frequency following filtering (MAF >`r snakemake@params[['maf2value']]`)**
@@ -119,10 +126,11 @@ knitr::kable(df, col.names = columns)
 pca <- read.table(snakemake@input[[18]], header = FALSE, sep = '')
 ancestry <- read.table(snakemake@input[[19]], header = FALSE)
 ancestry[ancestry == "-"] <- "-sample"
+par(mar=c(5, 4, 4, 10))
 for (i in 3:(as.numeric(snakemake@params[['PCnumber']])+1)) {
   values <- data.frame(pca[c(i)], pca[c(i+1)], ancestry[c(1:nrow(pca)),])
   colnames(values)<-c('V1','V2','V3')
   plot(values[1:2], xlab = i-2, ylab= i-1, col = as.factor(values$V3))
-  legend('topleft', legend = unique(values$V3), fill = as.factor(unique(values$V3)))
+  legend('topright', inset=c(-0.3,0), xpd=TRUE, legend = unique(values$V3), fill = as.factor(unique(values$V3)))
 }
 ```
